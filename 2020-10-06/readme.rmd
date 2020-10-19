@@ -1,0 +1,80 @@
+---
+title: "TidyTuesday 2020-10-06"
+date: "06/10/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Load packages and data
+```{r}
+library(tidyverse)
+tuesdata <- tidytuesdayR::tt_load('2020-10-06')
+tournament <- tuesdata$tournament
+names(tournament)
+summary(tournament)
+```
+
+```{r}
+table(tournament$year)
+table(tournament$seed)
+sort(table(tournament$school), TRUE)[1:20]
+```
+
+
+```{r}
+table(tournament$tourney_finish)
+tournament %>%
+  group_by(tourney_finish) %>%
+  count()
+
+# top 16 schools
+top16 <- tournament %>%
+  group_by(school) %>%
+  count(sort = TRUE) %>%
+  ungroup() %>%
+  slice(1:16) %>%
+  select(school)
+
+
+dat <- tournament %>%
+  mutate(pos = case_when(tourney_finish == "1st" ~ 1,
+                         tourney_finish == "2nd" ~ 2,
+                         tourney_finish == "RSF" ~ 3,
+                         tourney_finish == "RF" ~ 4,
+                         tourney_finish == "NSF" ~ 5,
+                         tourney_finish == "N2nd" ~ 6,
+                         tourney_finish == "Champ" ~ 7),
+         fpos = factor(pos, 1:7, c("1st", "2nd", "Loss in last 16", 
+                                   "Loss in last 8", "Loss in semis", 
+                                   "Semi winner", "Champ"))) %>%
+  filter(school %in% top16$school)
+  # group_by(school) %>%
+  # mutate(N = n()) %>% 
+  # ungroup()
+```
+
+
+Plot position
+```{r}
+ggplot(dat, aes(x = year, y = fpos, group = school, col = factor(school))) +
+  geom_point() +
+  geom_line() + 
+  facet_wrap(vars(school)) + 
+  theme(legend.position="none")
+```
+
+Does seed predict position?
+
+```{r}
+ggplot(dat, aes(x = seed, y = fpos)) +
+  geom_jitter()
+```
+
+
+### Session Info
+```{r}
+sessionInfo()
+```
+
