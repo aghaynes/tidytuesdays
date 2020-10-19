@@ -1,2 +1,3 @@
 # tidytuesdays
-Repo for tidy tuesday projects
+Repo for [tidytuesday](https://github.com/rfordatascience/tidytuesday) projects
+
