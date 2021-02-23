@@ -1,0 +1,63 @@
+---
+title: "Datasaurus - TidyTuesday 2020-10-13"
+date: "19/10/2020"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+tuesdata <- tidytuesdayR::tt_load('2020-10-13')
+datasaurus <- tuesdata$datasaurus
+```
+
+```{r}
+library(tidyverse)
+
+datasaurus %>% 
+  ggplot(aes(x = x, y = y, colour=dataset)) +
+  geom_point() +
+  theme_void() +
+  theme(legend.position = "none") +
+  facet_wrap(~dataset, ncol=3)
+```
+
+
+
+```{r}
+library(gtsummary)
+datasaurus %>%
+  # select(-dataset) %>%
+  tbl_summary(by = dataset, 
+              statistic = all_continuous() ~ "{mean} ({sd})")
+
+```
+
+
+
+
+
+
+```{r}
+
+library(ggpolypath)
+
+dino <- ggplot(filter(datasaurus, dataset == "dino"), aes(x = x, y = y)) +
+  geom_polypath(fill = "red") +
+  scale_color_identity() +
+  facet_wrap(~dataset, nrow = 5, labeller = as_labeller(tools::toTitleCase)) +
+  coord_polar() +
+  labs(x = NULL,
+       y = NULL) +
+  theme(plot.title = element_text(color ="#08415C"),
+        strip.text = element_text(color = "#08415C", hjust = 0.5),
+        plot.background = element_rect(fill = "#eee5e9", color = "#eee5e9"),
+        axis.text.x = element_blank(),
+        axis.text.y = element_blank())
+
+dino
+```
+
