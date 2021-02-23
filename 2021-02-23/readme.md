@@ -91,7 +91,8 @@ ggplot(aes(x = factor(year), xend = factor(year)), data = earn3) +
   theme(
     strip.background = element_blank(),
     strip.text.y = element_blank()
-  )
+  ) +
+  labs(col = "Income", size = "Persons (x1000)")
 ```
 
 ![](readme_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
