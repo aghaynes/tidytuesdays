@@ -1,0 +1,59 @@
+---
+title: "TidyTuesday 2021-03-03"
+date: "09/03/2021"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+tuesdata <- tidytuesdayR::tt_load('2021-03-09')
+movies <- tuesdata$movies
+raw_bechdel <- tuesdata$raw_bechdel
+
+library(tidyverse)
+
+# map(youtube, table)
+
+```
+
+
+```{r}
+head(movies)
+head(raw_bechdel)
+```
+```{r}
+
+bechdel <- raw_bechdel %>%
+  mutate(decade = cut(year, seq(1880, 2030, 10), label = seq(1880, 2020, 10))) %>%
+  group_by(decade) %>%
+  summarize(rating0 = sum(rating == 0),
+         rating1 = sum(rating == 1),
+         rating2 = sum(rating == 2), 
+         rating3 = sum(rating == 3),
+         N = n()) %>%
+  mutate(across(rating0:rating3, function(x) x/N*100, .names = "{.col}_perc"),
+         decade = as.numeric(as.character(decade))) 
+```
+```{r}
+ggplot(bechdel, aes(x = decade, y = rating3_perc)) +
+  geom_path(col = "blue") +
+  geom_path(aes(x = decade, y = rating0_perc), data = bechdel, col = "red")
+```
+
+
+```{r}
+bechdel %>%
+  pivot_longer(ends_with("perc"), names_to = "group") %>%
+  mutate(group = factor(group, 
+                        levels = paste0("rating", 0:3, "_perc"), 0:3)) %>%
+  ggplot(aes(x = decade, y = value, fill = forcats::fct_rev(group))) +
+  geom_area(alpha=0.6 , size=.5, colour="white") +
+  viridis::scale_fill_viridis(discrete = T) +
+  labs(x = "Decade",
+       y = "Percentage",
+       title = "Percentages of films with the different Bechdel ratings",
+       fill = "Rating")
+
+
+
+```
+
