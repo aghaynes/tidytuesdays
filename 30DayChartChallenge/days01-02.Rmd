@@ -1,0 +1,75 @@
+---
+title: "Days 1 and 2 (more or less...)"
+author: "Alan Haynes"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+dat <- tidytuesdayR::tt_load("2020-08-04")
+types <- dat$energy_types
+```
+
+
+```{r}
+library(tidyverse)
+
+unique(types$type)
+unique(types$country_name)
+
+germany <- types %>% 
+  filter(country == "DE") %>%
+  rename(y2018 = "2018")
+
+
+germany
+
+ggplot(germany, aes(y = y2018, fill = type, x = 1)) +
+  geom_bar(position = "stack", stat = "identity") +
+  scale_y_continuous(labels = scales::comma) +
+  ylab("Gigawatt hours") +
+  ggtitle("Energy sources in Germany, 2018") +
+  labs(fill = "Energey source",
+       caption = "Data: Eurostat") +
+  theme_bw() +
+  theme(axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.title.position = "plot",
+        legend.position = "top")
+
+```
+
+
+
+
+```{r}
+# devtools::install_github("hrbrmstr/waffle")
+
+g2 <- germany %>% 
+  mutate(prop = y2018/sum(y2018)*100,
+         prop = round(prop), 
+         type = case_when(grepl("[hH]ydro", .data$type) ~ "Hydro",
+                          TRUE ~ type))
+
+library(waffle)
+
+# extrafont::font_import()
+# extrafont::loadfonts(device = "win")
+
+ggplot(g2, aes(values = prop, fill = type, col = NA, label = type)) +
+  # geom_waffle() +
+  geom_pictogram(n_rows = 10,
+                 flip = TRUE, make_proportional = TRUE) +
+  theme_bw() +
+  theme_enhance_waffle() +
+  scale_label_pictogram(
+    name = NULL,
+    values = c("thermometer-full", "water", "atom", "solar-panel", "fan"),
+    labels = c("Conventional thermal", "Hydro", "Nuclear", "Solar", "Wind")
+  )
+
+c("thermometer-full", "water", "atom", "solar-panel", "fan")
+
+```
+
+pictograms dont work :(
