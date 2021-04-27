@@ -1,0 +1,24 @@
+---
+title: "PalmerPenguins"
+output: github_document
+---
+
+```{r}
+library(palmerpenguins)
+library(ggplot2)
+library(ggExtra)
+library(magrittr)
+```
+
+
+
+```{r}
+penguins %>%
+  ggplot(aes(x = bill_depth_mm, y = flipper_length_mm, col = species)) +
+  geom_point() +
+  theme_dark() +
+  theme(legend.position = "bottom") +
+  xlab("Bill depth (mm)") +
+  ylab("Flipper length (mm)") -> p
+ggMarginal(p, type = "histogram")
+```
