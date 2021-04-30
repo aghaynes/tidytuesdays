@@ -8,6 +8,10 @@ library(palmerpenguins)
 library(ggplot2)
 library(ggExtra)
 library(magrittr)
+library(ggridges)
+library(ggdist)
+library(patchwork)
+
 ```
 
 
@@ -22,3 +26,59 @@ penguins %>%
   ylab("Flipper length (mm)") -> p
 ggMarginal(p, type = "histogram")
 ```
+
+
+
+
+
+
+```{r, fig.height=10}
+
+theme <- theme_classic() %+replace%
+  theme(plot.margin = unit(c(1,1,1,1), units = "line"), 
+        axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+        )
+
+pingu <- penguins
+p <- pingu %>%
+  dplyr::filter(!is.na(.data$bill_depth_mm)) %>%
+  as.data.frame() 
+
+p1 <- p %>%
+  ggplot(aes(x = bill_depth_mm, y = factor(species))) +
+  theme +
+  geom_point(pch = "|")
+
+p12 <- p %>%
+  ggplot(aes(x = bill_depth_mm, y = factor(species))) +
+  theme +
+  geom_boxplot()
+
+p2 <- p %>%
+  ggplot(aes(x = bill_depth_mm, y = factor(species))) +
+  theme +
+  geom_density_ridges()
+
+p3 <- p %>%
+  ggplot(aes(x = bill_depth_mm, y = factor(species))) +
+  theme +
+  stat_histinterval()
+
+p4 <- p %>%
+  ggplot(aes(x = bill_depth_mm, y = factor(species))) +
+  theme +
+  stat_gradientinterval()
+
+p5 <- p %>%
+  ggplot(aes(x = bill_depth_mm, y = factor(species))) +
+  theme +
+  stat_halfeye()
+
+
+p1/p12/p3/p2/p4/p5
+
+
+```
+
