@@ -1,22 +1,58 @@
----
-title: "Astronauts"
-output: github_document
----
+Astronauts
+================
 
-Data comes from https://data.mendeley.com/datasets/86tsnnbv2w/1
+Data comes from <https://data.mendeley.com/datasets/86tsnnbv2w/1>
 
-```{r setup, include=FALSE}
-dat <- readr::read_csv("International Astronaut Database.csv")
+``` r
+library(tidyverse)
 ```
 
-```{r}
-library(tidyverse)
+    ## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
+
+    ## v ggplot2 3.3.3     v purrr   0.3.4
+    ## v tibble  3.1.0     v dplyr   1.0.5
+    ## v tidyr   1.1.3     v stringr 1.4.0
+    ## v readr   1.4.0     v forcats 0.5.1
+
+    ## Warning: package 'ggplot2' was built under R version 4.0.5
+
+    ## Warning: package 'tibble' was built under R version 4.0.5
+
+    ## Warning: package 'tidyr' was built under R version 4.0.5
+
+    ## Warning: package 'readr' was built under R version 4.0.5
+
+    ## Warning: package 'dplyr' was built under R version 4.0.5
+
+    ## Warning: package 'forcats' was built under R version 4.0.5
+
+    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
+    ## x dplyr::filter() masks stats::filter()
+    ## x dplyr::lag()    masks stats::lag()
+
+``` r
 # remotes::install_github("coolbutuseless/ggblur")
 library(ggblur)
 library(ggrepel)
-library(ggridges)
-library(viridis)
+```
 
+    ## Warning: package 'ggrepel' was built under R version 4.0.5
+
+``` r
+library(ggridges)
+```
+
+    ## Warning: package 'ggridges' was built under R version 4.0.5
+
+``` r
+library(viridis)
+```
+
+    ## Loading required package: viridisLite
+
+    ## Warning: package 'viridisLite' was built under R version 4.0.5
+
+``` r
 names(dat)[5:6] <- c("n_flights", "flighttime")
 
 dat2 <- dat %>%
@@ -54,9 +90,9 @@ dat2 %>%
         panel.grid.minor = element_blank())
 ```
 
+![](astro_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
 
-
-```{r}
+``` r
 dat3 <- dat2 %>%
   group_by(Country) %>%
   mutate(astro_country = n(),
@@ -92,11 +128,8 @@ dat3 %>%
         panel.grid = element_blank(),
         title = element_text(colour = "white"),
         plot.title.position = "plot")
-
-
 ```
 
+    ## Picking joint bandwidth of 48.6
 
-
-
-
+![](astro_files/figure-gfm/unnamed-chunk-2-1.png)<!-- -->
