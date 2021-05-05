@@ -26,10 +26,11 @@ library(tidytuesdayR)
 
 Dowload the weekly data and make available in the `tt` object.
 
-```{r Load}
+```{r Load, cache=TRUE}
 
 tt <- tt_load("2021-05-04")
 
+water <- tt$water
 ```
 
 
@@ -41,7 +42,6 @@ This includes a data dictionary, source, and a link to an article on the data.
 ```{r Readme, eval = interactive()}
 tt
 
-water <- tt$water
 
 
 
@@ -51,6 +51,8 @@ water <- tt$water
 # geodata
 
 ```{r}
+
+
 library(rnaturalearth)
 africa <- ne_countries(continent = "africa")
 str(africa, 1)
@@ -93,7 +95,6 @@ Explore the data and process it into a nice format for plotting! Access each dat
 library(dtplyr)
 
 tmp <- water %>%
-      st_drop_geometry() %>%
       count(water_source, sort = TRUE) %>%
       filter(n > 5000) %>%
       .$water_source
@@ -133,9 +134,11 @@ Using your processed dataset, create your unique visualization.
 ggplot(africa_sf) +
   geom_sf() +
   geom_sf(aes(col = water_tech), data = water_sf, size = .01) +
-  theme(legend.position = "bottom") +
-  theme_classic()
-
+  labs(col = "Tech. type",
+       footnote = "Data: wpdx") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.key.size = unit(5, "mm")) 
 
 
 ```
