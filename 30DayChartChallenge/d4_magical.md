@@ -87,10 +87,10 @@ pal <- c("#a4cec0", "#7cb298", "#bcbc6c", "#e5e44d", "#c4d400")
 my_graph <- wordcloud2(d, 
                        fontFamily = "aniron", 
                        color = sample(pal, nrow(d), TRUE))
-my_graph <- wordcloud2(d, 
-                       fontFamily = "aniron", 
-                       color = sample(pal, nrow(d), TRUE), 
-                       figPath = "One_Ring_Blender_Render_mask.png")
+# my_graph <- wordcloud2(d, 
+#                        fontFamily = "aniron", 
+#                        color = sample(pal, nrow(d), TRUE), 
+#                        figPath = "One_Ring_Blender_Render_mask.png")
 
 
 
