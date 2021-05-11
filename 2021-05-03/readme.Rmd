@@ -1,0 +1,157 @@
+---
+title: "TidyTemplate"
+date: 2021-05-05
+output: html_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+
+
+```
+
+# Load the weekly Data
+
+Dowload the weekly data and make available in the `tt` object.
+
+```{r Load, cache=TRUE}
+
+tt <- tt_load("2021-05-04")
+
+water <- tt$water
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+tt
+
+
+
+
+
+```
+
+# geodata
+
+```{r}
+
+
+library(rnaturalearth)
+africa <- ne_countries(continent = "africa")
+str(africa, 1)
+
+library(sf)
+africa_sf <- st_as_sf(africa)
+
+ggplot(africa_sf) +
+  geom_sf()
+
+ggplot(africa_sf) +
+  geom_sf() +
+  geom_point(data = water, mapping = aes(x = lon_deg, y = lat_deg))
+
+
+```
+
+Need to do some cleaning...
+
+
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+
+library(dtplyr)
+
+tmp <- water %>%
+      count(water_source, sort = TRUE) %>%
+      filter(n > 5000) %>%
+      .$water_source
+
+water_sf <- water %>% 
+  filter(!is.na(water_source)) %>%
+# water_sf <- water_sf %>%
+  filter(water_source %in% tmp) %>%
+  mutate(water_tech = case_when(str_detect(water_tech, "Hand Pump") ~ "Hand Pump",
+                                str_detect(water_tech, "Mechanized Pump") ~ "Mech Pump",
+                                str_detect(water_tech, "Rope and Bucket") ~ "Rope and Bucket",
+                                !is.na(water_tech) ~ "Other")) %>%
+  filter(!is.na(water_tech)) %>%
+  st_as_sf(coords = c("lon_deg", "lat_deg")) %>%
+  # Set CRS
+  st_set_crs(st_crs(africa_sf)) %>% 
+  # lazy_dt() %>%
+  # keep African countries
+  filter(lengths(st_intersects(x = ., y = africa_sf)) > 0) 
+
+water_sf %>%
+  st_drop_geometry() %>%
+  count(water_tech, sort = TRUE)
+
+
+
+
+```
+
+
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+
+```{r Visualize}
+
+ggplot(africa_sf) +
+  geom_sf() +
+  geom_sf(aes(col = water_tech), data = water_sf, size = .01) +
+  labs(col = "Tech. type",
+       footnote = "Data: wpdx") +
+  theme_classic() +
+  theme(legend.position = "bottom",
+        legend.key.size = unit(5, "mm")) 
+
+
+```
+
+# Save Image
+
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+
+```{r}
+
+# This will save your most recent plot
+ggsave(
+  filename = "My TidyTuesday Plot.png",
+  device = "png")
+
+```
