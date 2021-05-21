@@ -25,6 +25,7 @@ words <- unlist(strsplit(l, " "))
 library(stopwords)
 library(tidyverse)
 
+my_stopwords <- c("said", "shall", "saw", "like", "side", "suddenly")
 
 
 d <- data.frame(words = words) %>% 
@@ -32,7 +33,7 @@ d <- data.frame(words = words) %>%
          words = tolower(words)) %>%
   group_by(words) %>%
   count(sort = TRUE) %>%
-  filter(!words %in% stopwords()) %>%
+  filter(!words %in% c(stopwords(), my_stopwords)) %>%
   filter(!str_detect(words, "^<"))
 ```
 
@@ -40,10 +41,10 @@ d <- data.frame(words = words) %>%
 ```{r}
 library(wordcloud2)
 
-wordcloud2(d)
+# wordcloud2(d)
 
 
-my_graph <- wordcloud2(d, fontFamily = "aniron")
+# my_graph <- wordcloud2(d, fontFamily = "aniron")
 
 # http://24.media.tumblr.com/e7f84b164ca555df27ece58c9eef533b/tumblr_n4zlev5OTf1tze8l2o4_500.png
 # https://imagecolorpicker.com/en
@@ -52,7 +53,8 @@ pal <- c("#a4cec0", "#7cb298", "#bcbc6c", "#e5e44d", "#c4d400")
 
 my_graph <- wordcloud2(d, 
                        fontFamily = "aniron", 
-                       color = sample(pal, nrow(d), TRUE))
+                       color = sample(pal, nrow(d), TRUE), 
+                       shape = "pentagon")
 # my_graph <- wordcloud2(d, 
 #                        fontFamily = "aniron", 
 #                        color = sample(pal, nrow(d), TRUE), 
