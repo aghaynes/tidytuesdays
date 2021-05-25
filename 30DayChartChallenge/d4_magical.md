@@ -22,20 +22,7 @@ words <- unlist(strsplit(l, " "))
 
 library(stopwords)
 library(tidyverse)
-```
 
-    ## -- Attaching packages --------------------------------------- tidyverse 1.3.1 --
-
-    ## v ggplot2 3.3.3     v purrr   0.3.4
-    ## v tibble  3.1.2     v dplyr   1.0.6
-    ## v tidyr   1.1.3     v stringr 1.4.0
-    ## v readr   1.4.0     v forcats 0.5.1
-
-    ## -- Conflicts ------------------------------------------ tidyverse_conflicts() --
-    ## x dplyr::filter() masks stats::filter()
-    ## x dplyr::lag()    masks stats::lag()
-
-``` r
 my_stopwords <- c("said", "shall", "saw", "like", "side", "suddenly")
 
 
@@ -45,7 +32,8 @@ d <- data.frame(words = words) %>%
   group_by(words) %>%
   count(sort = TRUE) %>%
   filter(!words %in% c(stopwords(), my_stopwords)) %>%
-  filter(!str_detect(words, "^<"))
+  filter(!str_detect(words, "^<")) %>%
+  slice(1:150)
 ```
 
 # wordcloud2
@@ -65,8 +53,9 @@ pal <- c("#a4cec0", "#7cb298", "#bcbc6c", "#e5e44d", "#c4d400")
 
 my_graph <- wordcloud2(d, 
                        fontFamily = "aniron", 
-                       color = sample(pal, nrow(d), TRUE), 
-                       shape = "circle")
+                       color = sample(pal, nrow(d), TRUE)
+                       # , shape = "pentagon"
+                       )
 # my_graph <- wordcloud2(d, 
 #                        fontFamily = "aniron", 
 #                        color = sample(pal, nrow(d), TRUE), 
@@ -76,6 +65,11 @@ my_graph <- wordcloud2(d,
 
 # save it in html
 library("htmlwidgets")
+```
+
+    ## Warning: package 'htmlwidgets' was built under R version 4.0.4
+
+``` r
 saveWidget(my_graph,"tmp.html",selfcontained = F)
 
 # and in png or pdf
