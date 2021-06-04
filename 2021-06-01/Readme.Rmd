@@ -1,0 +1,175 @@
+---
+title: "TidyTemplate"
+date: 2021-06-01
+output: github_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+
+```
+
+# Load the weekly Data
+
+Dowload the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+# tt <- tt_load("2021-06-01")
+summary <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-01/summary.csv')
+challenges <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-01/challenges.csv')
+castaways <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-01/castaways.csv')
+viewers <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-01/viewers.csv')
+jury_votes <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2021/2021-06-01/jury_votes.csv')
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+for(i in ls()){
+  print(i)
+  tmp <- get(i)
+  glimpse(tmp)
+}
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+
+library(tidygeocoder)
+coords <- geo(address = summary$location)
+coords[2,] <- geo("Goshen Station, Queensland, Australia")
+coords[11,] <- geo("Peten, Guatemala")
+coords[14,] <- geo("Vanua Levu, Fiji")
+coords[17,] <- geo("Estuaire, Gabon")
+summary <- cbind(summary, coords)
+
+library(sf)
+
+pts <- st_as_sf(summary, coords = c("long", "lat"), crs = 4326)
+
+library(rnaturalearth)
+library(ggmap)
+sf <- ne_coastline() 
+str(sf, 1)
+
+sf_sf <- st_as_sf(sf)
+
+
+```
+
+
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+
+```{r Visualize}
+library(ggplot2)
+
+vf <- viewers %>%
+  filter(season %in% c(1,10,20,30,40)) %>%
+  mutate(season = factor(season)) %>% 
+  ggplot(aes(x = episode, y = viewers, col = season)) +
+  geom_smooth() +
+  geom_smooth(mapping = aes(y = rating_18_49*5), lty = 2) +
+  geom_point() +
+  geom_point(mapping = aes(y = rating_18_49*5), pch = 2) +
+  scale_y_continuous(
+    # Features of the first axis
+    name = "Viewers (millions)",
+    # Add a second axis and specify its features
+    sec.axis = sec_axis(~./5, name="Rating")
+  )
+  
+cf <- castaways %>%
+  filter(season %in% c(1,10,20,30,40)) %>%
+  mutate(season = factor(season)) %>% 
+  ggplot(aes(y = age, x = season, fill = season, col = season)) +
+  geom_boxplot(fill = NA, col = "black", outlier.shape = NA) +
+  geom_dotplot(binaxis = "y", stackdir = "center", ) +
+  # stat_summary(geom = "point", fun = mean)
+  theme_classic() +
+  theme(plot.title.position = "plot",
+        legend.position = "none") +
+  labs(y = "Age", x = "Season",
+       title = "Age variation across seasons") +
+  guides(fill = NULL)
+
+
+
+# 
+
+
+
+
+mf <- ggplot(sf_sf) +
+  geom_sf() +
+  geom_sf(data = pts, 
+          mapping = aes(col = season,
+                        size = viewers_premier)) +
+  scale_color_continuous(type = "viridis",
+                               breaks = c(1,10,20,30,40), 
+                               limits = c(1,40)) +
+  theme_minimal() +
+  # theme(legend.position = "bottom", 
+  #       legend.box="vertical") +
+  guides(col = guide_colourbar(title = "Season"#,
+                               # barwidth = 20, 
+                               # barheight = .5
+                               )
+         ) +
+  labs(size = "Millions of viewers", 
+       caption = "Data: survivoR",
+       title = "Survivor filming locations",
+       subtitle = "and the number that viewed the premier")
+  
+# library(patchwork)
+
+mf
+vf
+cf
+
+# (mf | (vf / cf ))
+```
+
+# Save Image
+
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+
+```{r}
+
+# This will save your most recent plot
+ggsave(
+  filename = "My TidyTuesday Plot.png",
+  device = "png")
+
+```

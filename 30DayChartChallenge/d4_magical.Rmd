@@ -34,7 +34,8 @@ d <- data.frame(words = words) %>%
   group_by(words) %>%
   count(sort = TRUE) %>%
   filter(!words %in% c(stopwords(), my_stopwords)) %>%
-  filter(!str_detect(words, "^<"))
+  filter(!str_detect(words, "^<")) %>%
+  slice(1:150)
 ```
 
 # wordcloud2
@@ -53,8 +54,9 @@ pal <- c("#a4cec0", "#7cb298", "#bcbc6c", "#e5e44d", "#c4d400")
 
 my_graph <- wordcloud2(d, 
                        fontFamily = "aniron", 
-                       color = sample(pal, nrow(d), TRUE), 
-                       shape = "pentagon")
+                       color = sample(pal, nrow(d), TRUE)
+                       # , shape = "pentagon"
+                       )
 # my_graph <- wordcloud2(d, 
 #                        fontFamily = "aniron", 
 #                        color = sample(pal, nrow(d), TRUE), 
