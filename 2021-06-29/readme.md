@@ -121,6 +121,7 @@ dat <- tt$animal_rescues %>%
   mutate(
     across(matches("^pump"), as.numeric),
     across(easting_m:longitude, as.numeric),
+    animal_group_parent_o = animal_group_parent,
     animal_group_parent = tolower(animal_group_parent),
     animal_group_parent = case_when(
       animal_group_parent == "budgie" ~ "bird",
@@ -161,6 +162,82 @@ dat %>% count(animal_group_parent, sort = TRUE)
     ## 5 farm animal           265
     ## 6 Other                 250
 
+``` r
+dat %>% count(stn_ground_name, sort = TRUE)
+```
+
+    ## # A tibble: 107 x 2
+    ##    stn_ground_name      n
+    ##    <chr>            <int>
+    ##  1 Enfield            136
+    ##  2 Edmonton           132
+    ##  3 Ilford             131
+    ##  4 Tottenham          129
+    ##  5 Dagenham           127
+    ##  6 Hornsey            126
+    ##  7 West Hampstead     120
+    ##  8 North Kensington   116
+    ##  9 Bethnal Green      113
+    ## 10 Holloway           112
+    ## # ... with 97 more rows
+
+``` r
+library(sf)
+```
+
+    ## Linking to GEOS 3.9.0, GDAL 3.2.1, PROJ 7.2.1
+
+``` r
+enfield <- dat %>% 
+  filter(stn_ground_name == "Enfield") %>% 
+  filter(!is.na(longitude)) %>% 
+  filter(!is.na(latitude)) %>% 
+  st_as_sf(coords = c("longitude", "latitude"))
+
+library(osmdata)
+```
+
+    ## Data (c) OpenStreetMap contributors, ODbL 1.0. https://www.openstreetmap.org/copyright
+
+``` r
+bb <- st_bbox(enfield)
+x <- bb %>% opq()
+
+d1 <- x %>%
+    add_osm_feature(key = 'highway') %>%
+    osmdata_sf()
+d2 <- x %>%
+    add_osm_feature(key = 'railway') %>%
+    osmdata_sf()
+d3 <- x %>%
+    add_osm_feature("water") %>%
+    osmdata_sf()
+d4 <- x %>%
+    add_osm_feature("landuse", "forest") %>%
+    osmdata_sf()
+d5 <- x %>%
+    add_osm_feature("natural", "wood") %>%
+    osmdata_sf()
+d6 <- x %>%
+    add_osm_feature("landuse", "recreation_ground") %>%
+    osmdata_sf()
+d62 <- x %>%
+    add_osm_feature("leasure", "park") %>%
+    osmdata_sf()
+d63 <- x %>%
+    add_osm_feature("leasure", "nature_reserve") %>%
+    osmdata_sf()
+d64 <- x %>%
+    add_osm_feature("leasure", "pitch") %>%
+    osmdata_sf()
+d7 <- x %>%
+    add_osm_feature("landuse", "farmland") %>%
+    osmdata_sf()
+d8 <- x %>%
+    add_osm_feature("landuse", "greenfield") %>%
+    osmdata_sf()
+```
+
 # Visualize
 
 Using your processed dataset, create your unique visualization.
@@ -181,12 +258,6 @@ dat %>%
 ```
 
 ![](readme_files/figure-gfm/Visualize-1.png)<!-- -->
-
-``` r
-library(sf)
-```
-
-    ## Linking to GEOS 3.9.0, GDAL 3.2.1, PROJ 7.2.1
 
 ``` r
 # library(rnaturalearth)
@@ -264,6 +335,93 @@ dat2 %>%
 ```
 
 ![](readme_files/figure-gfm/Visualize-6.png)<!-- -->
+
+``` r
+# enfield
+ggplot(d1$osm_lines) + geom_sf()
+```
+
+![](readme_files/figure-gfm/Visualize-7.png)<!-- -->
+
+``` r
+st_crs(enfield) <- st_crs(d1$osm_lines)
+
+enfield %>% 
+  st_set_geometry(NULL) %>% 
+  count(animal_group_parent)
+```
+
+    ## # A tibble: 6 x 2
+    ##   animal_group_parent     n
+    ##   <fct>               <int>
+    ## 1 Other                   2
+    ## 2 farm animal            23
+    ## 3 wild animal            19
+    ## 4 dog                    14
+    ## 5 bird                    9
+    ## 6 cat                    18
+
+``` r
+d1$osm_lines %>%
+  ggplot() +
+  geom_sf(data = d6$osm_polygons, fill = "lightgreen", col = NA, alpha = .6) +
+  geom_sf(data = d62$osm_polygons, fill = "lightgreen", col = NA, alpha = .6) +
+  geom_sf(data = d63$osm_polygons, fill = "lightgreen", col = NA, alpha = .6) +
+  geom_sf(data = d64$osm_polygons, fill = "lightgreen", col = NA, alpha = .6) +
+  geom_sf(data = d62$osm_multipolygons, fill = "lightgreen", col = NA, alpha = .6) +
+  geom_sf(data = d63$osm_multipolygons, fill = "lightgreen", col = NA, alpha = .6) +
+  geom_sf(data = d64$osm_multipolygons, fill = "lightgreen", col = NA, alpha = .6) +
+  geom_sf(data = d8$osm_polygons, fill = "lightgreen", col = NA, alpha = .6) +
+  geom_sf(data = d7$osm_polygons, fill = "brown", col = NA, alpha = .2) +
+  geom_sf(data = d3$osm_polygons, fill = "lightblue", col = NA) +
+  geom_sf(data = d4$osm_polygons, fill = "forestgreen", col = NA, alpha = .4) +
+  geom_sf(data = d5$osm_polygons, fill = "forestgreen", col = NA, alpha = .4) +
+  geom_sf(data = d2$osm_lines, col = "grey", lty = 2) +
+  geom_sf(col = "grey") +
+  geom_sf(data = enfield %>% filter(animal_group_parent == "cat"), 
+          aes(col = animal_group_parent), 
+          # pch = "🐱", size = 2
+          ) +
+  geom_sf(data = enfield %>% filter(animal_group_parent == "dog"), 
+          aes(col = animal_group_parent), 
+          # pch = "🐶", size = 2
+          ) +
+  geom_sf(data = enfield %>% filter(animal_group_parent == "bird"), 
+          aes(col = animal_group_parent), 
+          # pch = "🐦", size = 2
+          ) +
+  geom_sf(data = enfield %>% filter(animal_group_parent == "farm animal"), 
+          aes(col = animal_group_parent), 
+          # pch = "🐮", size = 2
+          ) +
+  geom_sf(data = enfield %>% filter(animal_group_parent == "wild animal"), 
+          aes(col = animal_group_parent), 
+          # pch = "🦊", size = 2
+          ) +
+  geom_point(aes(y = 51.66023500475344, x = -0.05204266969224151), size = 3
+             # , pch = "🚒"
+             ) + 
+  coord_sf(ylim=c(bb$ymin, bb$ymax),
+           xlim = c(bb$xmin, bb$xmax)) +
+  scale_color_discrete(name = "", labels = c("Birds", "Cats", "Dogs", "Livestock", "Wild animals")) +
+  guides(color = guide_legend(
+    override.aes = list(size = 3#,
+                        # pch = c("🐦", "🐱", "🐶", "🐮", "🦊")
+                        )
+    ) 
+  ) +
+  theme(legend.position = "bottom",
+        plot.background = element_rect(fill = "#faebd750"),
+        panel.background = element_blank(),
+        axis.title = element_blank()
+        , legend.background = element_blank()
+        , legend.key = element_blank()
+        , plot.title.position = "plot"
+        ) +
+  ggtitle("Animals rescued by Enfield Fire Station 2009-2021")
+```
+
+![](readme_files/figure-gfm/Visualize-8.png)<!-- -->
 
 # Save Image
 
