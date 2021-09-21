@@ -21,7 +21,6 @@ library(tidytuesdayR)
 
 library(patchwork)
 library(ggtext) 
-library(jpeg)
 
 ```
 
@@ -107,7 +106,6 @@ tmp <- dat %>%
   ungroup() %>% 
   slice_head(n = 10) 
 
-curtain <- readJPEG("curtain.jpg")
 
 map(unique(tmp$title), function(.x){
   grid$col <- c(rep(cols[1], tmp$n[tmp$title == .x & tmp$type == "Winner"]),

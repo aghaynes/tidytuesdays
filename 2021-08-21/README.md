@@ -181,8 +181,6 @@ tmp <- dat %>%
     ## `summarise()` has grouped output by 'title'. You can override using the `.groups` argument.
 
 ``` r
-curtain <- readJPEG("curtain.jpg")
-
 map(unique(tmp$title), function(.x){
   grid$col <- c(rep(cols[1], tmp$n[tmp$title == .x & tmp$type == "Winner"]),
                 rep(cols[2], tmp$n[tmp$title == .x & tmp$type == "Nominee"]),
