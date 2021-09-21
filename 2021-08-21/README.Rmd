@@ -1,0 +1,155 @@
+---
+title: "TidyTemplate"
+date: 2021-09-21
+output: github_document
+---
+
+# TidyTuesday
+
+Join the R4DS Online Learning Community in the weekly #TidyTuesday event!
+Every week we post a raw dataset, a chart or article related to that dataset, and ask you to explore the data.
+While the dataset will be “tamed”, it will not always be tidy! As such you might need to apply various R for Data Science techniques to wrangle the data into a true tidy format.
+The goal of TidyTuesday is to apply your R skills, get feedback, explore other’s work, and connect with the greater #RStats community!
+As such we encourage everyone of all skills to participate!
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(tidytuesdayR)
+
+library(patchwork)
+library(ggtext) 
+library(jpeg)
+
+```
+
+# Load the weekly Data
+
+Dowload the weekly data and make available in the `tt` object.
+
+```{r Load}
+
+tt <- tt_load("2021-09-21")
+
+```
+
+
+# Readme
+
+Take a look at the readme for the weekly data to get insight on the dataset.
+This includes a data dictionary, source, and a link to an article on the data.
+
+```{r Readme, eval = interactive()}
+
+tt
+
+```
+
+
+# Glimpse Data
+
+Take an initial look at the format of the data available.
+
+```{r Glimpse}
+
+tt %>% 
+  map(glimpse)
+
+```
+
+# Wrangle
+
+Explore the data and process it into a nice format for plotting! Access each dataset by name by using a dollarsign after the `tt` object and then the name of the data set.
+
+```{r Wrangle}
+
+map(tt$nominees, ~ length(unique(.x)))
+
+View(tt$nominees)
+
+dat <- tt$nominees %>% 
+  mutate(
+    # remove year
+    category = str_remove(category, " - \\d{4}"),
+    # sentence case
+    category = str_to_sentence(category)
+  )
+
+dat %>% 
+  count(category)
+
+```
+
+
+# Visualize
+
+Using your processed dataset, create your unique visualization.
+
+```{r Visualize}
+
+dat %>% 
+  group_by(year) %>% 
+  summarize(n = n()) %>% 
+  ggplot(aes(x = year, y = n)) +
+  geom_point()
+
+cols <- c("#ffd500", "#fafa89", "grey50")
+
+grid <- expand.grid(x = 1:10, y = 1:86)
+tmp <- dat %>% 
+  group_by(title, type) %>% 
+  summarize(n = n()) %>% 
+  group_by(title) %>% 
+  mutate(N = sum(n)) %>% 
+  arrange(desc(N)) %>% 
+  ungroup() %>% 
+  slice_head(n = 10) 
+
+curtain <- readJPEG("curtain.jpg")
+
+map(unique(tmp$title), function(.x){
+  grid$col <- c(rep(cols[1], tmp$n[tmp$title == .x & tmp$type == "Winner"]),
+                rep(cols[2], tmp$n[tmp$title == .x & tmp$type == "Nominee"]),
+                rep(cols[3], 860 - sum(tmp$n[tmp$title == .x])))
+  ggplot(grid, aes(x = x, y = y, fill = I(col))) +
+    geom_tile(col = cols[3]) +
+    labs(title = str_replace_all(.x, " ", "\n")) +
+    theme(panel.background = element_rect(fill = cols[3], colour = NULL),
+          plot.background = element_rect(linetype = NULL, fill = cols[3], colour = NULL),
+          panel.grid = element_blank(),
+          axis.title = element_blank(),
+          axis.text = element_blank(),
+          axis.ticks = element_blank(),
+          plot.title = element_text(hjust = 0.5)
+          )
+  
+}) %>% 
+  wrap_plots() + 
+  plot_layout(5, 1) + 
+  plot_annotation("Top 5 *Emmy* Nominees", 
+                  theme = theme(plot.title = element_markdown(hjust = 0.5, 
+                                                          size = 20))) +
+  plot_annotation(subtitle = "<span style='color:#ffd500;'>Winners</span> and <span style='color:#fafa89;'>Nominees</span>", 
+                  theme = theme(plot.subtitle = element_markdown(hjust = 0.5, 
+                                                          size = 18),
+                                plot.background = element_rect(fill = cols[3], colour = cols[3]),
+                                )) &
+  theme(plot.background = element_rect(fill = cols[3], colour = cols[3]))
+  
+
+```
+
+# Save Image
+
+Save your image for sharing. Be sure to use the `#TidyTuesday` hashtag in your post on twitter! 
+
+```{r}
+
+# This will save your most recent plot
+ggsave(
+  filename = "My TidyTuesday Plot.png",
+  device = "png")
+
+```
