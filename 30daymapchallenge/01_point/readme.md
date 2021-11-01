@@ -1,6 +1,9 @@
 01\_points
 ================
 
+Elevation data from
+<https://www.swisstopo.admin.ch/de/geodata/height/alti3d.html>
+
 ``` r
 # dat <- readr::read_delim(here::here("30daymapchallenge/21_elevation/50cmres/SWISSALTI3D_0.5_XYZ_CHLV95_LN02_2814_1175.xyz"), delim = " ", n_max = 5000)
 # dat <- readr::read_delim(here::here("30daymapchallenge/21_elevation/2mres/SWISSALTI3D_2_XYZ_CHLV95_LN02_2813_1169.xyz"), delim = " ")
