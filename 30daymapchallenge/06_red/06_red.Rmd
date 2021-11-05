@@ -1,0 +1,134 @@
+---
+title: "06_red"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(sf)
+library(tidyverse)
+library(elevatr)
+library(raster)
+library(rayshader)
+library(osmdata)
+
+
+trace(grDevices::png, exit = quote({
+  showtext::showtext_begin()
+}), print = FALSE)
+
+library(showtext)
+font_add_google("Dancing Script", "Dancing Script")
+font_families()
+
+library(rnaturalearth)
+
+x <- opq(bbox = c(7.371655936571164, 46.9147458930287, 7.509008881506716, 47.005568969560066))
+d4 <- x %>%
+  add_osm_feature(key = 'highway') %>%
+  osmdata_sf()
+d6 <- x %>%
+  add_osm_feature(key = 'water') %>%
+  osmdata_sf()
+
+ch <- d4$osm_lines
+
+
+# centro <- st_centroid(ch)
+raster <- get_elev_raster(ch, 10, )
+saveRDS(raster, "raster.rds")
+
+# xc <- 8.215354 
+# yc <- 46.79896
+# 
+# # https://cran.r-project.org/web/packages/samc/vignettes/tutorial-ggplot.html
+# rm <- raster_to_matrix(raster) 
+# cropped <- crop(raster, ch,)
+# plot(cropped)
+# plot(ch)
+# 
+# ras <- raster %>% 
+#   as.data.frame(xy = TRUE) %>% 
+#   rename(fill = file257870587453) 
+# 
+# extent <- list(rbind(c(min(ras$x), min(ras$y)),
+#                 c(max(ras$x), min(ras$y)),
+#                 c(max(ras$x), max(ras$y)),
+#                 c(min(ras$x), max(ras$y)),
+#                 c(min(ras$x), min(ras$y)))) %>% 
+#   st_polygon() %>% st_sfc() %>% st_sf() %>% st_cast()
+# 
+# st_crs(extent) <- st_crs(ch)
+# 
+# st_difference(ch, extent) %>% 
+#   ggplot() +
+#   geom_sf()
+
+rasmask <- raster::mask(raster, 
+                        ch %>% 
+                          st_bbox() %>% 
+                          st_as_sfc() %>% 
+                          st_sf() %>% 
+                          st_cast()) %>%
+# rasmask <- raster %>% 
+  as.data.frame(xy = TRUE) %>%
+  rename(fill = file587c23845b73)
+  
+# ggplot() +
+#   geom_tile(data = ras, mapping = aes(x = x, y = y, fill = fill)) +
+#   geom_sf(data = ch)
+
+bb <- ch %>% st_bbox() %>% as.numeric()
+
+ggplot() +
+  geom_tile(data = rasmask, mapping = aes(x = x, y = y, fill = fill)) +
+  # geom_contour(data = rasmask, mapping = aes(x = x, y = y, z = fill), col = "red") +
+  # geom_sf(data = ch, fill = NA) +
+  geom_sf(data = d6$osm_polygons, fill = "skyblue", col = NA) +
+  geom_sf(data = d6$osm_multipolygons, fill = "skyblue", col = NA) +
+  scale_fill_gradient2(low = "white", high = "red", na.value = NA) +
+  guides(fill = guide_none()) +
+  xlim(bb[1] + .017, bb[3] - .0135) +
+  ylim(bb[2], bb[4]) +
+  theme(panel.background = element_rect(fill = NA),
+        plot.background = element_rect(fill = NA),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text = element_blank(),
+        ) +
+  annotate("text", y = 46.94809413033608, x = 7.4477361581700485, label = "Bern", size = 10) +
+  annotate("text", y = 46.932781650112005, x = 7.418439095982165, label = "Köniz", size = 10) +
+  annotate("text", y = 46.9743476544151, x = 7.498173840749509, label = "Ittigen", size = 10) 
+ggsave(here::here("30daymapchallenge/06_red/06_red.png"))
+
+```
+
+<!-- ```{r} -->
+<!-- ggplot() + -->
+<!--   geom_sf(data = ch, fill = "red") + -->
+<!--   # geom_sf(data = centro, pch = 3, size = 20, lwd = 50) + -->
+<!--   geom_raster(data = raster_to_matrix(raster)) -->
+
+<!-- ggplot() + -->
+<!--   geom_tile(data = rm) -->
+
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- rm %>%  -->
+<!--   sphere_shade() %>%  -->
+<!--   add_overlay(height_shade(rm), .5) %>%  -->
+<!--   add_water(detect_water(rm, cutoff = .3)) %>%  -->
+<!--   # ray_shade(rm) %>%  -->
+<!--    %>%  -->
+
+<!--   plot_3d(heightmap = rm) -->
+<!-- ``` -->
+
+
