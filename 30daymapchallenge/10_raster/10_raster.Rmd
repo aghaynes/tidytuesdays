@@ -1,0 +1,113 @@
+---
+title: "06_red"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+
+library(sf)
+library(tidyverse)
+library(elevatr)
+library(raster)
+library(rayshader)
+library(osmdata)
+
+
+trace(grDevices::png, exit = quote({
+  showtext::showtext_begin()
+}), print = FALSE)
+
+library(showtext)
+font_add_google("Dancing Script", "Dancing Script")
+font_families()
+
+library(rnaturalearth)
+
+x <- opq(bbox = c(7.371655936571164, 46.9147458930287, 7.509008881506716, 47.005568969560066))
+d4 <- x %>%
+  add_osm_feature(key = 'highway') %>%
+  osmdata_sf()
+d6 <- x %>%
+  add_osm_feature(key = 'water') %>%
+  osmdata_sf()
+
+ch <- d4$osm_lines
+
+
+# centro <- st_centroid(ch)
+raster <- get_elev_raster(ch, 10, )
+saveRDS(raster, "raster.rds")
+
+rasmask <- raster::mask(raster, 
+                        ch %>% 
+                          st_bbox() %>% 
+                          st_as_sfc() %>% 
+                          st_sf() %>% 
+                          st_cast()) %>%
+  # raster::crop(ch %>% 
+  #                         st_bbox() %>% 
+  #                         st_as_sfc() %>% 
+  #                         st_sf() %>% 
+  #                         st_cast()) %>%
+# rasmask <- raster %>% 
+  as.data.frame(xy = TRUE) 
+names(rasmask)[3] <- "fill"
+rasmask2 <- raster::mask(raster, 
+                        ch %>% 
+                          st_bbox() %>% 
+                          st_as_sfc() %>% 
+                          st_sf() %>% 
+                          st_cast())
+
+
+bb <- ch %>% st_bbox() %>% as.numeric()
+
+g <- ggplot() +
+  geom_tile(data = rasmask, mapping = aes(x = x, y = y, fill = fill)) +
+  xlim(7.37, 7.5) +
+  ylim(46.91, 47.01) +
+  guides(fill = guide_none())
+g %>% 
+  plot_gg()
+
+rastermat <- raster %>%
+# rastermat <- rasmask %>%
+  as.matrix 
+rastermat %>% 
+  sphere_shade(texture="desert"
+               # , zscale = 10
+               ) %>% 
+  plot_map(rastermat)
+  # plot_3d(rastermat)
+
+```
+
+<!-- ```{r} -->
+<!-- ggplot() + -->
+<!--   geom_sf(data = ch, fill = "red") + -->
+<!--   # geom_sf(data = centro, pch = 3, size = 20, lwd = 50) + -->
+<!--   geom_raster(data = raster_to_matrix(raster)) -->
+
+<!-- ggplot() + -->
+<!--   geom_tile(data = rm) -->
+
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+<!-- rm %>%  -->
+<!--   sphere_shade() %>%  -->
+<!--   add_overlay(height_shade(rm), .5) %>%  -->
+<!--   add_water(detect_water(rm, cutoff = .3)) %>%  -->
+<!--   # ray_shade(rm) %>%  -->
+<!--    %>%  -->
+
+<!--   plot_3d(heightmap = rm) -->
+<!-- ``` -->
+
+
