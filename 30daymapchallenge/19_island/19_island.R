@@ -30,7 +30,7 @@ rasmask <- raster::crop(raster,
                           # st_buffer(1)
                         ) 
 
-rasmask <- aggregate(rasmask, 10)
+# rasmask <- aggregate(rasmask, 10)
 
 rasmask_df <- rasmask %>%
   as.data.frame(xy = TRUE) 
