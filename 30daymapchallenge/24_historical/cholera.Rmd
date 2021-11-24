@@ -11,6 +11,12 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r}
 library(tidyverse)
 library(sf)
+
+trace(grDevices::png, exit = quote({
+    showtext::showtext_begin()
+}), print = FALSE)
+library(showtext)
+font_add_google("Homemade Apple", "Homemade Apple")
 ```
 
 ```{r}
@@ -44,14 +50,67 @@ ggplot() +
         legend.position = "bottom",
         plot.background = element_blank(),
         panel.background = element_blank(),
-        plot.title = element_text(hjust = .5)
-        ) +
+        plot.title = element_text(hjust = .5, vjust = 0.1, family = "Homemade Apple", size = 30), 
+        legend.title = element_text(family = "Homemade Apple", size = 20), 
+        legend.text = element_text(family = "Homemade Apple", size = 20), 
+        legend.margin = margin(-10,0,0,0)
+) +
   guides(fill = guide_none(), 
          size = guide_legend("Number of deaths")) +
   labs(title = "Cases of cholera in London, 1858") +
   xlim(528765 + 325, 528765 + 1100) +
   ylim(181519 - 950, 181519 - 150)
+ggsave("raster.png", height = 10 ,width = 10, units = "cm")
 
 ```
+
+
+
+```{r}
+library(osmdata)
+
+x <- opq(st_bbox(tif2 %>% st_transform(4326)))
+str <- x %>%
+  add_osm_feature(key = 'highway') %>%
+  osmdata_sf()
+build <- add_osm_feature(x, key = "building") %>%
+  osmdata_sf()
+
+ggplot() +
+  # geom_sf(data = str$osm_lines) +
+  geom_sf(data = build$osm_polygons %>% st_transform(st_crs(pumps)), fill = "grey80", col = "grey60") +
+  geom_sf(data = pumps, col = "blue") +
+  geom_sf(data = deaths, aes(size = Count), col = "#ff000050", fill = "#ff000050", pch = 21) +
+  xlim(528765 + 325, 528765 + 1100) +
+  ylim(181519 - 950, 181519 - 150) +
+  theme_void() +
+  labs(title = "Cases of cholera in London, 1858") +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom",
+        # plot.background = element_blank(),
+        # panel.background = element_blank(),
+        plot.title = element_text(hjust = .5, vjust = 0.1, family = "Homemade Apple", size = 50), 
+        legend.title = element_text(family = "Homemade Apple", size = 30, hjust = .5),
+        legend.text = element_text(family = "Homemade Apple", size = 30), 
+        legend.margin = margin(-5,0,-5,0), 
+        legend.key = element_rect(fill = NA, colour = NA), 
+        legend.spacing.y = unit(0, "mm"),
+        legend.spacing.x = unit(2, "mm"),
+        plot.background = element_rect(fill = "#faebd750",
+                                       colour = NA),
+        panel.background = element_rect(fill = "#faebd750",
+                                       colour = NA), 
+        plot.margin = unit(c(0,0,0,0), units = "cm")
+        ) +
+  scale_size_continuous(breaks = c(1, 5, 10, 15)) +
+  guides(fill = guide_none(), 
+         size = guide_legend("Number of deaths", title.position = "top")) 
+ggsave("fig.png", height = 15, width = 10, units = "cm", dpi = 500)
+
+
+```
+
 
 
