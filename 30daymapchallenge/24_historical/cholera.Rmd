@@ -1,0 +1,57 @@
+---
+title: "06_historical"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+library(tidyverse)
+library(sf)
+```
+
+```{r}
+
+deaths <- st_read(here::here("30daymapchallenge/data/SnowGIS_SHP"), layer = "Cholera_Deaths")
+
+pumps <- st_read(here::here("30daymapchallenge/data/SnowGIS_SHP"), layer = "Pumps")
+# osmap <- st_read(here::here("30daymapchallenge/data/SnowGIS_SHP"), layer = "OSMap_Greyscale")
+
+library(stars)
+tif <- read_stars(here::here("30daymapchallenge/data/SnowGIS_SHP/OSMap_Grayscale.tif"), )
+tif2 <- tif
+tif2$OSMap_Grayscale.tif <- as.numeric(as.character(tif$OSMap_Grayscale.tif))
+
+snow <- read_stars(here::here("30daymapchallenge/data/SnowGIS_SHP/SnowMap.tif"))
+
+```
+
+
+```{r, fig.height = 7, fig.width= 4}
+ggplot() +
+  geom_stars(data = tif2) +
+  # geom_stars(data = tif3) +
+  geom_sf(data = deaths, aes(size = Count), pch = 21, col = "#ff000050", fill = "#ff000050") +
+  geom_sf(data = pumps, col = "blue") +
+  geom_contour() +
+  scale_fill_gradient2(low = "white", high = "grey50") +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        legend.position = "bottom",
+        plot.background = element_blank(),
+        panel.background = element_blank(),
+        plot.title = element_text(hjust = .5)
+        ) +
+  guides(fill = guide_none(), 
+         size = guide_legend("Number of deaths")) +
+  labs(title = "Cases of cholera in London, 1858") +
+  xlim(528765 + 325, 528765 + 1100) +
+  ylim(181519 - 950, 181519 - 150)
+
+```
+
+
