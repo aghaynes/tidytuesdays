@@ -1,0 +1,53 @@
+---
+title: "#30DayMapChallenge 2021 Day 25 - Interactive"
+author: "@aghaynes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+A map of the Swiss road network that shows more detail the more one zooms in.
+
+```{r leaflet}
+library(sf)
+library(leaflet)
+library(dplyr)
+
+streets <- read_sf("../data/dkm500", "21_DKM500_STRASSE")
+ch <- rnaturalearth::ne_countries(country = "Switzerland", 
+                                  returnclass = "sf", 
+                                  scale = 10)
+
+streets_4326 <- streets %>% st_transform(4326) %>% st_intersection(ch)
+
+
+leaflet() %>% 
+  # addTiles() %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addPolylines(data = streets_4326 %>%
+                 filter(OBJEKTART == "Autobahn"),
+               group = "Autobahn") %>%
+  addPolylines(data = streets_4326 %>% 
+                 filter(OBJEKTART == "Autostrasse"), 
+               group = "Autostrasse",
+               color = "red") %>% 
+  addPolylines(data = streets_4326 %>%
+                 filter(OBJEKTART == "6m Strasse"),
+               group = "6m Strasse", 
+               col = "green") %>% 
+  addPolylines(data = streets_4326 %>%
+                 filter(OBJEKTART %in% c("4m Strasse", "3m Strasse")),
+               group = "4m Strasse", 
+               col = "orange") %>% 
+  groupOptions("Autostrasse", zoomLevels = 8:100) %>%
+  groupOptions("6m Strasse", zoomLevels = 10:100) %>% 
+  groupOptions("4m Strasse", zoomLevels = 12:100) %>% 
+  addLegend(colors = c("blue", "red", "green", "orange"), 
+            labels = c("Motorways", "Main roads", "Secondary roads", "Small roads"))
+
+```
+
+
+Data is from SwissTOPO (DKM500) and Natural Earth, for the outline of Switzerland. The raster tiles are from CartoDB.
