@@ -10,3 +10,8 @@ Not intending to do them all... a few though...
 Data from OWiD (via google)
 
 ![](01_part_to_whole.png)
+
+
+## Day 15 multivariate
+
+![](15_multivariate.png)
