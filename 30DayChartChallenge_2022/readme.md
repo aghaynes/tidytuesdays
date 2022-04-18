@@ -15,3 +15,7 @@ Data from OWiD (via google)
 ## Day 15 multivariate
 
 ![](15_multivariate.png)
+
+## Day 18 OECD
+
+![](18_OECD.png)
